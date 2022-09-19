@@ -17,6 +17,7 @@
 #include <boost/current_function.hpp>
 #include <cctype>
 #include <sstream>
+#include <thread>
 #include <type_traits>
 
 //  This is a derivative work
@@ -417,6 +418,28 @@ struct log_type
 //------------------------------------------------
 
 } // detail
+
+//------------------------------------------------
+
+// Run in parallel
+template<class F>
+void
+run_in_threads(
+    std::size_t n,
+    F const& f)
+{
+    if(n == 0)
+        return;
+    if( n > 100)
+        n = 100;
+    std::thread v[100];
+    for(std::size_t i = 0; i < n; ++i)
+        v[i] = std::thread(f);
+    for(std::size_t i = 0; i < n; ++i)
+        v[i].join();
+}
+
+//------------------------------------------------
 
 /** Log output to the current suite
 */

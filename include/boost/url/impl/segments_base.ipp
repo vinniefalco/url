@@ -17,27 +17,26 @@
 namespace boost {
 namespace urls {
 
-string_view
+auto
 segments_base::
 iterator::
-dereference() const
+dereference() const ->
+    reference
 {
+#ifndef BOOST_URL_ITERATOR_STRINGS
     if(! valid_)
     {
-        // VFALCO This could be better,
-        // we should never shrink size() for
-        // a recycled std::string, because
-        // otherwise when we resize it larger
-        // we will again have to value-init (?)
-        // the new chars.
         s_.acquire();
         decode_opts opt;
         opt.plus_to_space = false;
-        it_.dereference().decode(opt,
-            string_token::assign_to(*s_));
+        n_ = it_.dereference().decode(opt,
+            string_token::preserve_size(*s_)).size();
         valid_ = true;
     }
-    return *s_;
+    return string_view(s_->data(), n_);
+#else
+    return it_.dereference().decode();
+#endif
 }
 
 segments_base::
@@ -73,9 +72,11 @@ operator=(
     iterator const& other) noexcept ->
         iterator&
 {
+#ifndef BOOST_URL_ITERATOR_STRINGS
     // don't copy recycled_ptr
-    it_ = other.it_;
     valid_ = false;
+#endif
+    it_ = other.it_;
     return *this;
 }
 

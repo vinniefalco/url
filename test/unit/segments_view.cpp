@@ -47,6 +47,80 @@ BOOST_STATIC_ASSERT(
 struct segments_view_test
 {
     void
+    check(
+        string_view s,
+        std::initializer_list<
+            segments_view::reference> match)
+    {
+        auto rv = parse_uri_reference(s);
+        if(! BOOST_TEST(rv.has_value()))
+            return;
+        segments_view const& ps(rv->segments());
+        BOOST_TEST_EQ(ps.buffer().data(), s.data());
+        BOOST_TEST_EQ(ps.is_absolute(), s.starts_with('/'));
+        BOOST_TEST_EQ(ps.empty(), match.size() == 0);
+        if(! BOOST_TEST_EQ(ps.size(), match.size()))
+            return;
+        if(match.size() > 0 && ! ps.empty())
+        {
+            BOOST_TEST_EQ(ps.front(), *match.begin());
+            BOOST_TEST_EQ(ps.back(), *std::prev(match.end()));
+        }
+        // forward
+        {
+            auto it0 = ps.begin();
+            auto it1 = match.begin();
+            auto const end = ps.end();
+            while(it0 != end)
+            {
+                segments_view::reference r0(*it0);
+                segments_view::reference r1(*it1);
+                BOOST_TEST_EQ(r0, r1);
+                BOOST_TEST_EQ(*it0, *it1);
+#ifndef BOOST_URL_ITERATOR_STRINGS
+                BOOST_TEST_EQ( // arrow
+                    it0->size(), it1->size());
+#endif
+                segments_view::value_type v0(*it0);
+                segments_view::value_type v1(*it1);
+                BOOST_TEST_EQ(v0, *it1);
+                BOOST_TEST_EQ(v1, *it1);
+                auto prev = it0++;
+                BOOST_TEST_NE(prev, it0);
+                BOOST_TEST_EQ(++prev, it0);
+                ++it1;
+                BOOST_TEST_EQ(v0, v1);;
+            }
+        }
+        // reverse
+        if(match.size() > 0)
+        {
+            auto const begin = ps.begin();
+            auto it0 = ps.end();
+            auto it1 = match.end();
+            do
+            {
+                auto prev = it0--;
+                BOOST_TEST_NE(prev, it0);
+                BOOST_TEST_EQ(--prev, it0);
+                --it1;
+                segments_view::reference r0(*it0);
+                segments_view::reference r1(*it1);
+                BOOST_TEST_EQ(*it0, *it1);
+                BOOST_TEST_EQ(r0, r1);
+            }
+            while(it0 != begin);
+        }
+        // ostream
+        {
+            std::stringstream ss;
+            ss << ps;
+            BOOST_TEST_EQ(ss.str(),
+                rv->encoded_path());
+        }
+    }
+
+    void
     testMembers()
     {
         // segments_view()

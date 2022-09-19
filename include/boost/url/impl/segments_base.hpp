@@ -22,15 +22,19 @@ namespace urls {
 class segments_base::iterator
 {
     detail::segments_iter_impl it_;
+
+#ifndef BOOST_URL_ITERATOR_STRINGS
     mutable grammar::recycled_ptr<
         std::string> s_ = nullptr;
+    mutable std::size_t n_ = 0;
     mutable bool valid_ = false;
+#endif
 
     friend class segments_base;
     friend class segments_ref;
 
     BOOST_URL_DECL
-    string_view
+    segments_base::reference
     dereference() const;
 
     iterator(detail::path_ref const&) noexcept;
@@ -44,11 +48,16 @@ class segments_base::iterator
 
 public:
     using value_type = std::string;
+#ifndef BOOST_URL_ITERATOR_STRINGS
     using reference = string_view;
+#else
+    using reference = std::string;
+#endif
     using difference_type = std::ptrdiff_t;
     using iterator_category =
         std::bidirectional_iterator_tag;
 
+#ifndef BOOST_URL_ITERATOR_STRINGS
     struct pointer
     {
         string_view s;
@@ -59,6 +68,9 @@ public:
             return &s;
         }
     };
+#else
+    using pointer = void const*;
+#endif
 
     iterator() = default;
 
@@ -76,16 +88,20 @@ public:
         return dereference();
     }
 
+#ifndef BOOST_URL_ITERATOR_STRINGS
     pointer
     operator->() const
     {
         return {dereference()};
     }
+#endif
 
     iterator&
     operator++() noexcept
     {
+#ifndef BOOST_URL_ITERATOR_STRINGS
         valid_ = false;
+#endif
         it_.increment();
         return *this;
     }
@@ -93,7 +109,9 @@ public:
     iterator&
     operator--() noexcept
     {
+#ifndef BOOST_URL_ITERATOR_STRINGS
         valid_ = false;
+#endif
         it_.decrement();
         return *this;
     }

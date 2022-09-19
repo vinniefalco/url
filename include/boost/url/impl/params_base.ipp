@@ -17,11 +17,13 @@
 namespace boost {
 namespace urls {
 
-param_view
+auto
 params_base::
 iterator::
-dereference() const
+dereference() const ->
+    reference
 {
+#ifndef BOOST_URL_ITERATOR_STRINGS
     if(! valid_)
     {
         // VFALCO This could be done with
@@ -43,6 +45,13 @@ dereference() const
         string_view(key_->data(), it_.dk),
         string_view(value_->data(), it_.dv),
         has_value_};
+#else
+    auto p = it_.dereference();
+    return reference(
+        p.key.decode(),
+        p.value.decode(),
+        p.has_value);
+#endif
 }
 
 params_base::
@@ -77,9 +86,11 @@ operator=(
     iterator const& other) noexcept ->
         iterator&
 {
+#ifndef BOOST_URL_ITERATOR_STRINGS
     // don't copy recycled_ptr
-    it_ = other.it_;
     valid_ = false;
+#endif
+    it_ = other.it_;
     return *this;
 }
 

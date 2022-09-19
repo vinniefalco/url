@@ -91,6 +91,7 @@ public:
     */
     using value_type = std::string;
 
+#ifndef BOOST_URL_ITERATOR_STRINGS
     /** The reference type
 
         This is the type of value returned when
@@ -100,6 +101,10 @@ public:
 
     /// @copydoc reference
     using const_reference = string_view;
+#else
+    using reference = std::string;
+    using const_reference = std::string;
+#endif
 
     /** An unsigned integer type used to represent size.
     */

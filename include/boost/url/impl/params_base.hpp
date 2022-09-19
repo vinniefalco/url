@@ -23,19 +23,18 @@ namespace urls {
 class params_base::iterator
 {
     detail::params_iter_impl it_;
+
+#ifndef BOOST_URL_ITERATOR_STRINGS
     mutable grammar::recycled_ptr<
         std::string> key_ = nullptr;
     mutable grammar::recycled_ptr<
         std::string> value_ = nullptr;
     mutable bool has_value_ = false;
     mutable bool valid_ = false;
+#endif
 
     friend class params_base;
     friend class params_ref;
-
-    BOOST_URL_DECL
-    param_view
-    dereference() const;
 
     iterator(detail::query_ref const& ref) noexcept;
     iterator(detail::query_ref const& impl, int) noexcept;
@@ -48,12 +47,23 @@ class params_base::iterator
 
 public:
     using value_type = param;
+#ifndef BOOST_URL_ITERATOR_STRINGS
     using reference = param_view;
     using pointer = param_view;
+#else
+    using reference = param;
+    using pointer = param;
+#endif
     using difference_type =
         std::ptrdiff_t;
     using iterator_category =
         std::bidirectional_iterator_tag;
+
+private:
+    BOOST_URL_DECL
+    reference
+    dereference() const;
+public:
 
     iterator() = default;
 
@@ -68,7 +78,9 @@ public:
     iterator&
     operator++() noexcept
     {
+#ifndef BOOST_URL_ITERATOR_STRINGS
         valid_ = false;
+#endif
         it_.increment();
         return *this;
     }
@@ -84,7 +96,9 @@ public:
     iterator&
     operator--() noexcept
     {
+#ifndef BOOST_URL_ITERATOR_STRINGS
         valid_ = false;
+#endif
         it_.decrement();
         return *this;
     }
@@ -100,13 +114,13 @@ public:
     reference
     operator*() const
     {
-        return dereference();
+        return reference(dereference());
     }
 
-    pointer const
+    pointer
     operator->() const
     {
-        return dereference();
+        return pointer(dereference());
     }
 
     bool

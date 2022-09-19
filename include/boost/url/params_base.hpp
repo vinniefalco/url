@@ -107,6 +107,7 @@ public:
     */
     using value_type = param;
 
+#ifndef BOOST_URL_ITERATOR_STRINGS
     /** The reference type
 
         This is the type of value returned when
@@ -119,6 +120,10 @@ public:
 
     /// @copydoc reference
     using const_reference = param_view;
+#else
+    using reference = param;
+    using const_reference = param;
+#endif
 
     /** An unsigned integer type to represent sizes.
     */
